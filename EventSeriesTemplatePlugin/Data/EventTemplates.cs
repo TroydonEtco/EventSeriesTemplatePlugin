@@ -20,8 +20,7 @@ namespace EventSeriesTemplatePlugin.Data
             eventTemplateEntity["new_elementsassociated"] = this.ElementsAssociated;
             eventTemplateEntity["new_eventseriestemplate"] = eventSeriesTemplateEntity.LogicalName;
 
-            //Entity = eventTemplateEntity;
-            // when create evt templates is true, and templates not created, we update
+            Entity = eventTemplateEntity;
             return eventTemplateEntity;
         }
 
@@ -31,7 +30,6 @@ namespace EventSeriesTemplatePlugin.Data
         public bool Owner { get; set; }
         public string Name { get; set; }
         public ElementsAssociatedOptions ElementsAssociated { get; set; }
-        //public Entity Entity { get; set; }
-
+        public Entity Entity { get; set; }
     }
 }
