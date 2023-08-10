@@ -89,13 +89,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AttributeTypeDisplayName.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Data\EventSeriesTemplate.cs" />
     <Compile Include="Data\EventTemplates.cs" />
     <Compile Include="Enums.cs" />
-    <Compile Include="EventSeriesTemplatePluginCode.cs" />
+    <Compile Include="Helpers\EnumExtensions.cs" />
+    <Compile Include="Helpers\EventTemplateSeriesBusinessRules.cs" />
+    <Compile Include="Plugins\EventSeriesTemplatePlugins\ESTPluginProcessETs.cs" />
     <Compile Include="Helpers\LogHelpers.cs" />
     <Compile Include="Helpers\OffsetHelper.cs" />
+    <Compile Include="Plugins\EventSeriesTemplatePlugins\ESTPluginValidateProcessETs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -1,4 +1,5 @@
-﻿using Microsoft.Xrm.Sdk;
+﻿using EventSeriesTemplatePlugin.Data;
+using Microsoft.Xrm.Sdk;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,6 +35,15 @@ namespace EventSeriesTemplatePlugin
                 organizationRequest.RequestName,
                 organizationServiceFault.Message);
             failures++;
+        }
+
+
+        public static void TracePropertyData(ITracingService tracingService, EventSeriesTemplate parentProp)
+        {
+            foreach (var propertyInfo in parentProp.GetType().GetProperties())
+            {
+                tracingService.Trace($"Property name: {propertyInfo.Name} Property value: {propertyInfo.GetValue(parentProp)}");
+            }
         }
     }
 }

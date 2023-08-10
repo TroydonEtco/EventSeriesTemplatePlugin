@@ -1,0 +1,11 @@
+TROUBLEHOOTING
+
+
+- needed to save as no, for the event to work
+- has to be in the current step of BPF too?
+- execution context only holds the prop data from the attr submitted with the update Request, the props that have changed.
+So better to use pre entity images when needing to use other data for logic calculations.
+- Can select to update my custom type conditionally based on the select attribute that is part of the step.
+- identified that accidentally selected only a few attr on the wrong step on tje preimage
+
+- getting more in depth with plugin work, russ just debriefed us on the debit success api. Will be giving it a look once im done with all the sams issues.

@@ -1,4 +1,6 @@
 ﻿using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Metadata;
+using Microsoft.Xrm.Sdk.Query;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,8 +19,8 @@ namespace EventSeriesTemplatePlugin.Data
             eventTemplateEntity["new_offsetdays"] = this.OffsetDays;
             eventTemplateEntity["ownerid"] = this.Owner;
             eventTemplateEntity["new_name"] = this.Name;
-            eventTemplateEntity["new_elementsassociated"] = this.ElementsAssociated;
-            eventTemplateEntity["new_eventseriestemplate"] = eventSeriesTemplateEntity.LogicalName;
+            eventTemplateEntity["new_elementsassociated"] = new OptionSetValue(this.ElementsAssociated);
+            eventTemplateEntity["new_eventseriestemplate"] = new EntityReference(eventSeriesTemplateEntity.LogicalName);
 
             Entity = eventTemplateEntity;
             return eventTemplateEntity;
@@ -27,9 +29,9 @@ namespace EventSeriesTemplatePlugin.Data
         public EventSeriesTemplate EventSeriesTemplate { get; set; }
         public int SequenceNumber { get; set; }
         public int OffsetDays { get; set; }
-        public bool Owner { get; set; }
+        public EntityReference Owner { get; set; }
         public string Name { get; set; }
-        public ElementsAssociatedOptions ElementsAssociated { get; set; }
+        public int ElementsAssociated { get; set; }
         public Entity Entity { get; set; }
     }
 }

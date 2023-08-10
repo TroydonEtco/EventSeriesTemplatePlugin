@@ -10,59 +10,69 @@ namespace EventSeriesTemplatePlugin.Data
 {
     public class EventSeriesTemplate
     {
-        public EventSeriesTemplate(Entity entity, ITracingService tracingService)
+        public EventSeriesTemplate()
         {
-            tracingService.Trace($"Attempting to create Entity Template object using evt template entity");
+        }
+        /// <summary>
+        /// Creates an event series template object, and passes in data based on the image type.
+        /// It ensures the image contains the key prop before assigning it the value.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="imageType"></param>
+        public EventSeriesTemplate(IPluginExecutionContext context, ImageTypes imageType)
+        {
+            if (imageType == ImageTypes.PreImage)
+            {
+                if (context.PreEntityImages.ContainsKey(Constants.ESTPreImage) &&
+                    context.PreEntityImages[Constants.ESTPreImage].Contains(Constants.EvtSeriesTemplate_NumberOfEvts))
+                {
+                    NumberOfEvents = (int)context.PreEntityImages[Constants.ESTPreImage][Constants.EvtSeriesTemplate_NumberOfEvts];
+                }
+                if (context.PreEntityImages.ContainsKey(Constants.ESTPreImage) &&
+                    context.PreEntityImages[Constants.ESTPreImage].Contains(Constants.EvtSeriesTemplate_EvtTemplatesCreated))
+                {
+                    EventTemplatesCreated = (bool)context.PreEntityImages[Constants.ESTPreImage][Constants.EvtSeriesTemplate_EvtTemplatesCreated];
+                }
+                if (context.PreEntityImages.ContainsKey(Constants.ESTPreImage) &&
+                    context.PreEntityImages[Constants.ESTPreImage].Contains(Constants.EvtSeriesTemplate_CreateEvtTemplates))
+                {
+                    CreateEvtTemplates = (bool)context.PreEntityImages[Constants.ESTPreImage][Constants.EvtSeriesTemplate_CreateEvtTemplates];
+                }
+                if (context.PreEntityImages.ContainsKey(Constants.ESTPreImage) && context.PreEntityImages[Constants.ESTPreImage].Contains(Constants.EvtSeriesTemplate_Names))
+                {
+                    Name = (string)context.PreEntityImages[Constants.ESTPreImage][Constants.EvtSeriesTemplate_Names];
+                }
+                if (context.PreEntityImages.ContainsKey(Constants.ESTPreImage) && context.PreEntityImages[Constants.ESTPreImage].Contains(Constants.EvtSeriesTemplate_DatesToSkip))
+                {
+                    DatesToSkipSerialized = (string)context.PreEntityImages[Constants.ESTPreImage][Constants.EvtSeriesTemplate_DatesToSkip];
+                }
+                if (context.PreEntityImages.ContainsKey(Constants.ESTPreImage) && context.PreEntityImages[Constants.ESTPreImage].Contains(Constants.EvtSeriesTemplate_StartDate))
+                {
+                    StartDate = Convert.ToDateTime(context.PreEntityImages[Constants.ESTPreImage][Constants.EvtSeriesTemplate_StartDate]);
+                }
+                if (context.PreEntityImages.ContainsKey(Constants.ESTPreImage) && context.PreEntityImages[Constants.ESTPreImage].Contains(Constants.EvtSeriesTemplate_NumberOfMonths))
+                {
+                    NumberOfMonths = (int)context.PreEntityImages[Constants.ESTPreImage][Constants.EvtSeriesTemplate_NumberOfMonths];
+                }
+                if (context.PreEntityImages.ContainsKey(Constants.ESTPreImage) && context.PreEntityImages[Constants.ESTPreImage].Contains(Constants.EvtSeriesTemplate_ETWithOkElements))
+                {
+                    ETWithOkElements = (int)context.PreEntityImages[Constants.ESTPreImage][Constants.EvtSeriesTemplate_ETWithOkElements];
+                }
+                if (context.PreEntityImages.ContainsKey(Constants.ESTPreImage) && context.PreEntityImages[Constants.ESTPreImage].Contains(Constants.EvtSeriesTemplate_AllETElementOk))
+                {
+                    AllETOk = (bool)context.PreEntityImages[Constants.ESTPreImage][Constants.EvtSeriesTemplate_AllETElementOk];
+                }
+            }
+        }
 
-            if (entity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_NumberOfEvts))
-            {
-                NumberOfEvents = (int)entity[Constants.EvtSeriesTemplate_NumberOfEvts];
-            }
-            tracingService.Trace($"{nameof(NumberOfEvents)} successfully assigned");
 
-            if (entity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_EvtTemplatesCreated))
+        public void CreateEntityFromPreImage(Entity entity)
+        {
+            // when create evt templates is true, and templates not created, we update
+            if (this.CreateEvtTemplates && !this.EventTemplatesCreated)
             {
-                EventTemplatesCreated = (bool)entity[Constants.EvtSeriesTemplate_EvtTemplatesCreated];
+                this.UpdateEntityAfterCreateEvtTemplates(entity);
             }
-            tracingService.Trace($"{nameof(EventTemplatesCreated)} successfully assigned");
-
-            if (entity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_CreateEvtTemplates))
-            {
-                CreateEvtTemplates = (bool)entity[Constants.EvtSeriesTemplate_CreateEvtTemplates];
-            }
-            tracingService.Trace($"{nameof(CreateEvtTemplates)} successfully assigned");
-            if (entity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_Names))
-            {
-                Name = (string)entity[Constants.EvtSeriesTemplate_Names];
-            }
-            tracingService.Trace($"{nameof(Name)} successfully assigned");
-            if (entity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_DatesToSkip))
-            {
-                DatesToSkipSerialized = (string)entity[Constants.EvtSeriesTemplate_DatesToSkip];
-            }
-            tracingService.Trace($"{nameof(DatesToSkipSerialized)} successfully assigned");
-            if (entity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_StartDate))
-            {
-                StartDate = (DateTime)entity[Constants.EvtSeriesTemplate_StartDate];
-            }
-            tracingService.Trace($"{nameof(StartDate)} successfully assigned");
-            if (entity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_NumberOfMonths))
-            {
-                NumberOfMonths = (int)entity[Constants.EvtSeriesTemplate_NumberOfMonths];
-            }
-            tracingService.Trace($"{nameof(NumberOfMonths)} successfully assigned");
-            if (entity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_ETWithOkElements))
-            {
-                ETWithOkElements = (int)entity[Constants.EvtSeriesTemplate_ETWithOkElements];
-            }
-            tracingService.Trace($"{nameof(ETWithOkElements)} successfully assigned");
-            if (entity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_AllETElementOk))
-            {
-                AlLETOk = (bool)entity[Constants.EvtSeriesTemplate_AllETElementOk];
-            }
-            tracingService.Trace($"{nameof(AlLETOk)} successfully assigned");
-
-            Entity = entity;
         }
 
         public void Update(Entity entity)
@@ -81,7 +91,53 @@ namespace EventSeriesTemplatePlugin.Data
             entity[Constants.EvtSeriesTemplate_EvtTemplatesCreated] = true;
             entity[Constants.EvtSeriesTemplate_CreateEvtTemplates] = this.CreateEvtTemplates;
             entity[Constants.EvtSeriesTemplate_ETWithOkElements] = this.ETWithOkElements;
-            entity[Constants.EvtSeriesTemplate_AllETElementOk] = this.AlLETOk;
+            entity[Constants.EvtSeriesTemplate_AllETElementOk] = this.AllETOk;
+        }
+
+        /// <summary>
+        /// Updates this objects props based on attributes passed in the step.
+        /// </summary>
+        /// <param name="entity"></param>
+        public void UpdateEntityFromExecutionContext(Entity entity)
+        {
+            if (entity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_NumberOfEvts))
+            {
+                this.NumberOfEvents = (int)entity[Constants.EvtSeriesTemplate_NumberOfEvts];
+            }
+            if (entity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_EvtTemplatesCreated))
+            {
+                this.EventTemplatesCreated = (bool)entity[Constants.EvtSeriesTemplate_EvtTemplatesCreated];
+            }
+            if (entity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_CreateEvtTemplates))
+            {
+                this.CreateEvtTemplates = (bool)entity[Constants.EvtSeriesTemplate_CreateEvtTemplates];
+            }
+            if (entity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_Names))
+            {
+                this.Name = (string)entity[Constants.EvtSeriesTemplate_Names];
+            }
+            if (entity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_DatesToSkip))
+            {
+                this.DatesToSkipSerialized = (string)entity[Constants.EvtSeriesTemplate_DatesToSkip];
+            }
+            if (entity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_StartDate))
+            {
+                this.StartDate = DateTime.Parse((string)entity[Constants.EvtSeriesTemplate_StartDate]);
+            }
+            if (entity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_NumberOfMonths))
+            {
+                this.NumberOfMonths = (int)entity[Constants.EvtSeriesTemplate_NumberOfMonths];
+            }
+            if (entity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_ETWithOkElements))
+            {
+                this.ETWithOkElements = (int)entity[Constants.EvtSeriesTemplate_ETWithOkElements];
+            }
+            if (entity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_AllETElementOk))
+            {
+                this.AllETOk = (bool)entity[Constants.EvtSeriesTemplate_AllETElementOk];
+            }
+
+            this.Entity = entity;
         }
 
         public List<EventTemplates> EventTemplates { get; set; }
@@ -94,7 +150,7 @@ namespace EventSeriesTemplatePlugin.Data
         public string DatesToSkipSerialized { get; set; }
         public RecurrenceTypes RecurrenceType { get; set; }
         public int ETWithOkElements { get; set; }
-        public bool AlLETOk { get; set; }
+        public bool AllETOk { get; set; }
         public Entity Entity { get; set; }
     }
 }
