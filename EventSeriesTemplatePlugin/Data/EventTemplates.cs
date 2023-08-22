@@ -12,6 +12,20 @@ namespace EventSeriesTemplatePlugin.Data
 {
     public class EventTemplates
     {
+        public EventTemplates()
+        {
+        }
+        public EventTemplates(EventTemplates eventTemplates)
+        {
+            this.EventSeriesTemplate = eventTemplates.EventSeriesTemplate;
+            this.SequenceNumber = eventTemplates.SequenceNumber;
+            this.OffsetDays = eventTemplates.OffsetDays;
+            this.Owner = eventTemplates.Owner;
+            this.Name = eventTemplates.Name;
+            this.ElementsAssociated = eventTemplates.ElementsAssociated;
+            this.Entity = eventTemplates.Entity;
+        }
+
         public Entity CreateEntity(Entity eventSeriesTemplateEntity)
         {
             var eventTemplateEntity  = new Entity(Constants.EvtTemplate_Table);
@@ -20,7 +34,7 @@ namespace EventSeriesTemplatePlugin.Data
             eventTemplateEntity["ownerid"] = this.Owner;
             eventTemplateEntity["new_name"] = this.Name;
             eventTemplateEntity["new_elementsassociated"] = new OptionSetValue(this.ElementsAssociated);
-            eventTemplateEntity["new_eventseriestemplate"] = new EntityReference(eventSeriesTemplateEntity.LogicalName);
+            eventTemplateEntity["new_eventseriestemplate"] = new EntityReference(eventSeriesTemplateEntity.LogicalName, eventSeriesTemplateEntity.Id);
 
             Entity = eventTemplateEntity;
             return eventTemplateEntity;

@@ -62,6 +62,10 @@ namespace EventSeriesTemplatePlugin.Data
                 {
                     AllETOk = (bool)context.PreEntityImages[Constants.ESTPreImage][Constants.EvtSeriesTemplate_AllETElementOk];
                 }
+                if (context.PreEntityImages.ContainsKey(Constants.ESTPreImage) && context.PreEntityImages[Constants.ESTPreImage].Contains(Constants.EvtSeriesTemplate_AllETElementOk))
+                {
+                    RecurrenceType = (RecurrenceTypes)((OptionSetValue)context.PreEntityImages[Constants.ESTPreImage][Constants.EvtSeriesTemplate_RecurrenceType]).Value;
+                }
             }
         }
 
@@ -71,7 +75,7 @@ namespace EventSeriesTemplatePlugin.Data
             // when create evt templates is true, and templates not created, we update
             if (this.CreateEvtTemplates && !this.EventTemplatesCreated)
             {
-                this.UpdateEntityAfterCreateEvtTemplates(entity);
+                this.UpdateEntityAfterCreateEvtTemplates();
             }
         }
 
@@ -80,18 +84,18 @@ namespace EventSeriesTemplatePlugin.Data
             // when create evt templates is true, and templates not created, we update
             if (this.CreateEvtTemplates && !this.EventTemplatesCreated)
             {
-                this.UpdateEntityAfterCreateEvtTemplates(entity);
+                this.UpdateEntityAfterCreateEvtTemplates();
             }
         }
 
         // TODO: Check if it will update entity passed in param, considering it is ref type
-        private void UpdateEntityAfterCreateEvtTemplates(Entity entity)
+        private void UpdateEntityAfterCreateEvtTemplates()
         {
-            entity[Constants.EvtSeriesTemplate_NumberOfEvts] = this.NumberOfEvents;
-            entity[Constants.EvtSeriesTemplate_EvtTemplatesCreated] = true;
-            entity[Constants.EvtSeriesTemplate_CreateEvtTemplates] = this.CreateEvtTemplates;
-            entity[Constants.EvtSeriesTemplate_ETWithOkElements] = this.ETWithOkElements;
-            entity[Constants.EvtSeriesTemplate_AllETElementOk] = this.AllETOk;
+            this.Entity[Constants.EvtSeriesTemplate_NumberOfEvts] = this.NumberOfEvents;
+            this.Entity[Constants.EvtSeriesTemplate_EvtTemplatesCreated] = true;
+            this.Entity[Constants.EvtSeriesTemplate_CreateEvtTemplates] = this.CreateEvtTemplates;
+            this.Entity[Constants.EvtSeriesTemplate_ETWithOkElements] = this.ETWithOkElements;
+            this.Entity[Constants.EvtSeriesTemplate_AllETElementOk] = this.AllETOk;
         }
 
         /// <summary>
@@ -135,6 +139,10 @@ namespace EventSeriesTemplatePlugin.Data
             if (entity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_AllETElementOk))
             {
                 this.AllETOk = (bool)entity[Constants.EvtSeriesTemplate_AllETElementOk];
+            }
+            if (entity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_RecurrenceType))
+            {
+                this.RecurrenceType = (RecurrenceTypes)(int)entity[Constants.EvtSeriesTemplate_RecurrenceType];
             }
 
             this.Entity = entity;

@@ -18,6 +18,7 @@ namespace EventSeriesTemplatePlugin
         public const string EvtSeriesTemplate_NumberOfMonths = "new_numberofmonths";
         public const string EvtSeriesTemplate_ETWithOkElements = "new_etwithokelements";
         public const string EvtSeriesTemplate_AllETElementOk = "new_alletelementok";
+        public const string EvtSeriesTemplate_RecurrenceType = "new_recurrencetype";
         public const string ESTPreImage = "ESTPreImage";
 
         public const string EvtTemplate_Table = "new_eventtemplate";

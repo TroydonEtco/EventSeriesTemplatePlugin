@@ -45,17 +45,18 @@ namespace EventSeriesTemplatePlugin
 
                     // Create event templates
                     var evtSeriesTemplates = new EventSeriesTemplate(context, ImageTypes.PreImage);
-
-                    var startDateTest = Convert.ToDateTime(context.PreEntityImages[Constants.ESTPreImage][Constants.EvtSeriesTemplate_StartDate]);
-                    tracingService.Trace($"Stage {++stageNumber} : {startDateTest}: Start Date Value prior to initialization of update from context");
-
                     evtSeriesTemplates.UpdateEntityFromExecutionContext(evtSeriesTemplateEntity);
-                    CreateEventTemplates(context, tracingService, service, evtSeriesTemplates);
+                    if (EventTemplateSeriesBusinessRules.ShouldCreateTemplates(evtSeriesTemplates))
+                    {
+                        CreateEventTemplates(context, tracingService, service, evtSeriesTemplates);
+                        //throw new InvalidPluginExecutionException("Throw exception to enable debug");
+                    }
                 }
             }
             catch (Exception ex)
             {
                 tracingService.Trace("MyPlugin: error: {0}", ex.ToString());
+                throw;
             }
         }
 
@@ -65,12 +66,10 @@ namespace EventSeriesTemplatePlugin
             {
                 // Validate we are targeting the correct evt series template entity
                 tracingService.Trace($"Stage {++stageNumber}: Validating we are targeting the correct evt series template entity");
-
-                var evtTemplates = new List<EventTemplates>();
                 tracingService.Trace($"Stage {++stageNumber}: Conditions to create templates {nameof(evtSeriesTemplates.CreateEvtTemplates)} : {evtSeriesTemplates.CreateEvtTemplates} " +
                     $"{nameof(evtSeriesTemplates.EventTemplatesCreated)} : {evtSeriesTemplates.EventTemplatesCreated}");
-
                 LogHelpers.TracePropertyData(tracingService, evtSeriesTemplates);
+
                 if (evtSeriesTemplates.CreateEvtTemplates && !evtSeriesTemplates.EventTemplatesCreated)
                 {
                     // Initialize execute multiple requests.
@@ -87,8 +86,10 @@ namespace EventSeriesTemplatePlugin
                     };
 
                     // Create event templates
-                    CreateEventTemplatesInRange(context, tracingService, evtSeriesTemplates, requestWithResults);
+                    var evtTemplates = CreateEventTemplatesInRange(context, tracingService, evtSeriesTemplates, requestWithResults);
 
+                    evtSeriesTemplates.EventTemplates = new List<EventTemplates>();
+                    evtSeriesTemplates.EventTemplates.AddRange(evtTemplates);
                     // Execute all the requests in the request collection using a single web method call.
                     tracingService.Trace($"Stage {++stageNumber}: Executing all the requests in the request collection.");
                     ExecuteMultipleResponse responseWithResults = (ExecuteMultipleResponse)service.Execute(requestWithResults);
@@ -100,8 +101,8 @@ namespace EventSeriesTemplatePlugin
                     tracingService.Trace("Setting ET OK data in EST");
                     evtSeriesTemplates.ETWithOkElements = responseWithResults.Responses.Count(r => r.Response != null);
                     evtSeriesTemplates.AllETOk = !responseWithResults.Responses.Any(r => r.Fault != null);
+                    evtSeriesTemplates.EventTemplatesCreated = responseWithResults.Responses.Any(r => r.Response != null);
 
-                    evtSeriesTemplates.EventTemplates.AddRange(evtTemplates);
                     evtSeriesTemplates.Update(evtSeriesTemplates.Entity); // update the referenced entity
                     service.Update(evtSeriesTemplates.Entity); // then use org service to update in dataverse
                 }
@@ -112,26 +113,28 @@ namespace EventSeriesTemplatePlugin
             }
         }
 
-        private void CreateEventTemplatesInRange(IPluginExecutionContext context, ITracingService tracingService, EventSeriesTemplate evtSeriesTemplates, ExecuteMultipleRequest requestWithResults)
+        private IEnumerable<EventTemplates> CreateEventTemplatesInRange(IPluginExecutionContext context, ITracingService tracingService, EventSeriesTemplate evtSeriesTemplates, ExecuteMultipleRequest requestWithResults)
         {
             tracingService.Trace($"Stage {++stageNumber}: Intializing Create {nameof(CreateEventTemplatesInRange)} method request.");
             DateTime startDate = evtSeriesTemplates.StartDate;
             DateTime currentDate = evtSeriesTemplates.StartDate;
             DateTime endDate = startDate.AddMonths(evtSeriesTemplates.NumberOfMonths);
             int offsetDays = 0; // Initialize the variable before the loop
+            int oldOffsetDays = 0; // Initialize the variable to store the previous offset
             int loopCounter = 1; // Initialize the loop counter
             bool isFirstLoop = true; // Added flag to identify the first loop
             tracingService.Trace($"Stage {++stageNumber}: Initialized Create {nameof(CreateEventTemplatesInRange)} method request." +
                 $"{nameof(startDate)} : {startDate} {nameof(currentDate)} : {currentDate} - {nameof(endDate)} : {endDate} - {nameof(evtSeriesTemplates.NumberOfMonths)} : {evtSeriesTemplates.NumberOfMonths}");
-
+            var evtTemplates = new List<EventTemplates>();
             while (currentDate <= endDate)
             {
-                tracingService.Trace($"Stage {stageNumber}: Creating event template for current date {currentDate:dd/mm/yyyy}. Offsetdays: {offsetDays}. {nameof(currentDate)} : {currentDate} - {nameof(endDate)} : {endDate}");
-
+                tracingService.Trace($"Stage {stageNumber}: Creating event template for current date {currentDate:dd/MM/yyyy}. Offsetdays: {offsetDays}. {nameof(currentDate)} : {currentDate} - {nameof(endDate)} : {endDate}");
                 var name = $"{evtSeriesTemplates.Name} {Enum.GetName(typeof(RecurrenceTypes), evtSeriesTemplates.RecurrenceType)} {loopCounter}";
 
                 // Call the CalculateOffsetDaysForEventSeries function and store the result in offset
-                OffsetHelper.CalculateOffsetDaysForEventSeries(evtSeriesTemplates, ref offsetDays, startDate, endDate, evtSeriesTemplates.DatesToSkipSerialized, isFirstLoop);
+                OffsetHelper.CalculateOffsetDaysForEventSeries(evtSeriesTemplates, ref offsetDays, startDate, currentDate, endDate, evtSeriesTemplates.DatesToSkipSerialized, isFirstLoop);
+                // Calculate the difference in offset days
+                int offsetDifference = offsetDays - oldOffsetDays;
 
                 var evtTemplate = new EventTemplates()
                 {
@@ -139,16 +142,21 @@ namespace EventSeriesTemplatePlugin
                     ElementsAssociated = (int)ElementsAssociatedOptions.NotApplicable,
                     Name = name,
                     OffsetDays = offsetDays,
-                    Owner = new EntityReference("ownerid", context.UserId) // AttributeTypeCode.Owner //new AttributeTypeDisplayName() { Value = "OwnerType" }
+                    Owner = new EntityReference("systemuser", context.UserId) // AttributeTypeCode.Owner //new AttributeTypeDisplayName() { Value = "OwnerType" }
                 };
+
+                // Update oldOffsetDays for the next iteration
+                oldOffsetDays = offsetDays;
 
                 evtTemplate.CreateEntity(evtSeriesTemplates.Entity);
                 CreateRequest createRequest = new CreateRequest { Target = evtTemplate.Entity };
                 requestWithResults.Requests.Add(createRequest);
+                evtTemplates.Add(evtTemplate);
                 loopCounter++;
-                currentDate = currentDate.AddDays(1);
+                currentDate = currentDate.AddDays(offsetDifference);
                 isFirstLoop = false; // Set flag to false after the first loop
             }
+            return evtTemplates;
         }
 
         private void HandleResponses(ExecuteMultipleRequest requestWithResults, ExecuteMultipleResponse responseWithResults, ITracingService tracingService)

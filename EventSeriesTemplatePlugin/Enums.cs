@@ -23,8 +23,11 @@ namespace EventSeriesTemplatePlugin
         {
             Daily = 0,
             Weekly = 1,
-            Monthly = 2,
-            OtherAdhoc = 3,
+            Fortnightly = 2,
+            MonToWed = 3,
+            WedToFri = 4,
+            Monthly = 5,
+            OtherAdhoc = 6,
         }
 
         public enum ImageTypes
