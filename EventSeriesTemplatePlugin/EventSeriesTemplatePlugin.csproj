@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -91,16 +92,22 @@
   <ItemGroup>
     <Compile Include="AttributeTypeDisplayName.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="Data\Event.cs" />
+    <Compile Include="Data\EventSeries.cs" />
     <Compile Include="Data\EventSeriesTemplate.cs" />
     <Compile Include="Data\EventTemplates.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="Helpers\EnumExtensions.cs" />
     <Compile Include="Helpers\EventTemplateSeriesBusinessRules.cs" />
+    <Compile Include="Plugins\EventSeriesPlugin\ESPluginInheritEST.cs" />
+    <Compile Include="Plugins\EventSeriesPlugin\ESPluginProcessEvts.cs" />
+    <Compile Include="Plugins\EventSeriesPlugin\ESPluginValidateEST.cs" />
     <Compile Include="Plugins\EventSeriesTemplatePlugins\ESTPluginProcessETs.cs" />
     <Compile Include="Helpers\LogHelpers.cs" />
     <Compile Include="Helpers\OffsetHelper.cs" />
     <Compile Include="Plugins\EventSeriesTemplatePlugins\ESTPluginValidateProcessETs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\BPF\BPFService.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

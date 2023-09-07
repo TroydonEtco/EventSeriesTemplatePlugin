@@ -38,9 +38,9 @@ namespace EventSeriesTemplatePlugin
         }
 
 
-        public static void TracePropertyData(ITracingService tracingService, EventSeriesTemplate parentProp)
+        public static void TracePropertyData<T>(ITracingService tracingService, T parentProp)
         {
-            foreach (var propertyInfo in parentProp.GetType().GetProperties())
+            foreach (var propertyInfo in parentProp?.GetType().GetProperties())
             {
                 tracingService.Trace($"Property name: {propertyInfo.Name} Property value: {propertyInfo.GetValue(parentProp)}");
             }

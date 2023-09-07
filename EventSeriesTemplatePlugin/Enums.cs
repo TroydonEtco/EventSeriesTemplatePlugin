@@ -35,5 +35,25 @@ namespace EventSeriesTemplatePlugin
             PreImage = 0,
             PostImage = 1,
         }
+
+        public enum YesOrNo
+        {
+            No = 0,
+            Yes = 1,
+        }
+
+        public enum CourseType
+        {
+            EliteClasses = 0,
+            BlockCourseClasses = 1,
+            NightClasses = 2,
+            SiteSafeClasses = 3,
+            ConstructSafeClasses = 4,
+            EWPClasses = 5,
+            DayReleaseClasses = 6,
+            FirstAidClasses = 7,
+            Foundation = 8,
+            Other = 9,
+        }
     }
 }
