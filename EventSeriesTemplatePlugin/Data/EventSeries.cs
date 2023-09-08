@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xrm.Sdk;
+using System;
 using System.Collections.Generic;
 using static EventSeriesTemplatePlugin.Enums;
 
@@ -116,9 +117,11 @@ namespace EventSeriesTemplatePlugin.Data
             this.Description = eventSeriesTemplate.Description;
             this.ClassFrequency = eventSeriesTemplate.RecurrenceType;
             this.CourseType = eventSeriesTemplate.CourseType;
+            this.FirstEventDate = eventSeriesTemplate.StartDate;
 
             this.Entity[Constants.EvtSeries_Description] = eventSeriesTemplate.Description;
-            this.Entity[Constants.EvtSeries_ClassFrequency] = eventSeriesTemplate.RecurrenceType;
+            this.Entity[Constants.EvtSeries_FirstEvtDate] = eventSeriesTemplate.StartDate;
+            //this.Entity[Constants.EvtSeries_ClassFrequency] = eventSeriesTemplate.RecurrenceType;
             this.Entity[Constants.EvtSeries_ClassFrequency] = new OptionSetValue((int)eventSeriesTemplate.RecurrenceType);
             this.Entity[Constants.EvtSeries_CourseType] = new OptionSetValue((int)eventSeriesTemplate.CourseType);
         }
@@ -128,13 +131,12 @@ namespace EventSeriesTemplatePlugin.Data
         public string Description { get; set; }
         public bool CreateEvents { get; set; }
         public bool EvtsCreated { get; set; }
+        public DateTime FirstEventDate { get; set; }
         public CourseType? CourseType { get; set; }
         public RecurrenceTypes? ClassFrequency { get; set; }
         public EventSeriesTemplate EventSeriesTemplate { get; set; }
         public EntityReference PrimarySeriesTemplate { get; set; }
         public List<Event> Events { get; set; }
-
-
         public Entity Entity { get; set; }
     }
 }

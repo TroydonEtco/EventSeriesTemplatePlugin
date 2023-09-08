@@ -4,6 +4,7 @@ using Microsoft.Xrm.Sdk.Query;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Remoting.Contexts;
 using System.Text;
 using System.Threading.Tasks;
 using static EventSeriesTemplatePlugin.Enums;
@@ -26,15 +27,43 @@ namespace EventSeriesTemplatePlugin.Data
             this.Entity = eventTemplates.Entity;
         }
 
+        public EventTemplates(Entity entity, EventSeries evtSeries)
+        {
+            this.EventSeriesTemplate = evtSeries?.EventSeriesTemplate ?? null;
+
+            if (entity.Attributes.ContainsKey(Constants.EvtTemplate_SequenceNumber))
+            {
+                this.SequenceNumber = (int)entity[Constants.EvtTemplate_SequenceNumber];
+            }
+            if (entity.Attributes.ContainsKey(Constants.EvtTemplate_OffsetDays))
+            {
+                this.OffsetDays = (int)entity[Constants.EvtTemplate_OffsetDays];
+            }
+            if (entity.Attributes.ContainsKey(Constants.EvtTemplate_OwnerId))
+            {
+                this.Owner = (EntityReference)entity[Constants.EvtTemplate_OwnerId];
+            }
+            if (entity.Attributes.ContainsKey(Constants.EvtSeries_Name))
+            {
+                this.Name = (string)entity[Constants.EvtSeries_Name];
+            }
+            if (entity.Attributes.ContainsKey(Constants.EvtTemplate_ElementsAssociated))
+            {
+                this.ElementsAssociated = (int)entity[Constants.EvtTemplate_ElementsAssociated];
+            }
+
+            this.Entity = entity;
+        }
+
         public Entity CreateEntity(Entity eventSeriesTemplateEntity)
         {
-            var eventTemplateEntity  = new Entity(Constants.EvtTemplate_Table);
-            eventTemplateEntity["new_sequencenumber"] = this.SequenceNumber;
-            eventTemplateEntity["new_offsetdays"] = this.OffsetDays;
-            eventTemplateEntity["ownerid"] = this.Owner;
-            eventTemplateEntity["new_name"] = this.Name;
-            eventTemplateEntity["new_elementsassociated"] = new OptionSetValue(this.ElementsAssociated);
-            eventTemplateEntity["new_eventseriestemplate"] = new EntityReference(eventSeriesTemplateEntity.LogicalName, eventSeriesTemplateEntity.Id);
+            var eventTemplateEntity = new Entity(Constants.EvtTemplate_Table);
+            eventTemplateEntity[Constants.EvtTemplate_SequenceNumber] = this.SequenceNumber;
+            eventTemplateEntity[Constants.EvtTemplate_OffsetDays] = this.OffsetDays;
+            eventTemplateEntity[Constants.EvtTemplate_OwnerId] = this.Owner;
+            eventTemplateEntity[Constants.EvtTemplate_Name] = this.Name;
+            eventTemplateEntity[Constants.EvtTemplate_ElementsAssociated] = new OptionSetValue(this.ElementsAssociated);
+            eventTemplateEntity[Constants.EvtTemplate_EvtSeriesTemplateKey] = new EntityReference(eventSeriesTemplateEntity.LogicalName, eventSeriesTemplateEntity.Id);
 
             Entity = eventTemplateEntity;
             return eventTemplateEntity;

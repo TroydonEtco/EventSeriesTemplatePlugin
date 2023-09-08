@@ -12,35 +12,31 @@ namespace EventSeriesTemplatePlugin.Data
         public Event()
         {
         }
-        public Event(Event _event)
+        public Event(EventTemplates evtTemplate, EventSeries evtSeries)
         {
-            this.Name = _event.Name;
-            this.EventSeries = _event.EventSeries;
-            this.EventDate = _event.EventDate;
-            this.Name = _event.Name;
-            this.Name = _event.Name;
-            this.Name = _event.Name;
+            this.Name = evtTemplate.Name;
+            this.EventSeries = evtSeries;
+            this.SequenceNumber = evtTemplate.SequenceNumber;
         }
 
         public Entity CreateEntity(Entity eventSeriesEntity)
         {
-            var eventTemplateEntity = new Entity(Constants.EvtTemplate_Table);
-            eventTemplateEntity["new_sequencenumber"] = this.SequenceNumber;
-            eventTemplateEntity["new_offsetdays"] = this.OffsetDays;
-            eventTemplateEntity["ownerid"] = this.Owner;
-            eventTemplateEntity["oas_room"] = this.Room;
-            eventTemplateEntity["new_name"] = this.Name;
-           // eventTemplateEntity["new_elementsassociated"] = new OptionSetValue(this.ElementsAssociated);
-            eventTemplateEntity["new_eventseriestemplate"] = new EntityReference(eventSeriesEntity.LogicalName, eventSeriesEntity.Id);
+            var eventEntity = new Entity(Constants.EvtTemplate_Table);
+            eventEntity[Constants.EvtTemplate_SequenceNumber] = this.SequenceNumber;
+            eventEntity[Constants.EvtTemplate_OwnerId] = this.Owner;
+            eventEntity[Constants.EvtTemplate_Name] = this.Name;
+            eventEntity[Constants.EvtTemplate_EvtSeriesTemplateKey] = new EntityReference(eventSeriesEntity.LogicalName, eventSeriesEntity.Id);
 
-            Entity = eventTemplateEntity;
-            return eventTemplateEntity;
+            Entity = eventEntity;
+            return eventEntity;
         }
 
         public EventSeries EventSeries { get; set; }
         public EntityReference Owner { get; set; }
         public EntityReference Room { get; set; }
+        public EntityReference Venue { get; set; }
         public string Name { get; set; }
+        public int SequenceNumber { get; set; }
         public DateTime EventDate { get; set; }
 
         public Entity Entity { get; set; }
