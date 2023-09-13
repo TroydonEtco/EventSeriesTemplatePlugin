@@ -5,7 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static EventSeriesTemplatePlugin.Enums;
-using System.Text.Json;
+using Microsoft.Xrm.Sdk;
+using EventSeriesTemplatePlugin.Models;
+using Newtonsoft.Json;
 
 namespace EventSeriesTemplatePlugin.Helpers
 {
@@ -41,10 +43,11 @@ namespace EventSeriesTemplatePlugin.Helpers
             return offsetDays;
         }
 
-        public static void CalculateOffsetDaysForEventSeries(EventSeriesTemplate eventSeriesTemplate, ref int offsetDays, DateTime startDate, DateTime currentDay, DateTime endDate, string datesToSkipSerialized = null, bool isFirstLoop = false)
+        public static void CalculateOffsetDaysForEventSeries(EventSeriesTemplate eventSeriesTemplate, ref int offsetDays, ITracingService tracingService, DateTime currentDay, DateTime endDate, string datesToSkipSerialized = null, bool isFirstLoop = false)
         {
             // Deserialize the string into a List<DateTime>
-            List<DateTime> datesToSkip = !string.IsNullOrEmpty(datesToSkipSerialized) ? JsonSerializer.Deserialize<List<DateTime>>(datesToSkipSerialized) : null;
+            tracingService.Trace("Attempting to derserialize dates to skip");
+            List<DateRange> datesToSkip = !string.IsNullOrEmpty(datesToSkipSerialized) ? JsonConvert.DeserializeObject<List<DateRange>>(datesToSkipSerialized) : null;
 
             // Calculate the offset based on the recurrence type
             CalculateOffsetDaysBasedOnRecurrence(eventSeriesTemplate, ref offsetDays);
@@ -88,10 +91,26 @@ namespace EventSeriesTemplatePlugin.Helpers
                     }
                 }
 
-                // Skip any additional dates provided in the datesToSkip list
-                if (datesToSkip != null && datesToSkip.Contains(currentDay.Date))
+                // Check if the current day falls within any of the date ranges to skip
+                if (datesToSkip != null)
                 {
-                    offsetDays += 1;
+                    foreach (var dateRange in datesToSkip)
+                    {
+                        tracingService.Trace($"Checking if currentDay >= dateRange.From : {currentDay} >= {dateRange.From} " +
+                            $"\n && currentDay <= dateRange.To: {currentDay} <=  {dateRange.To}");
+
+                        // Check if currentDay falls within the date range (including From and To)
+                        if (currentDay >= dateRange.From && currentDay <= dateRange.To)
+                        {
+                            // Increment initial offset for the first day
+                            offsetDays += 1;
+
+                            // Calculate the number of days between From and To, and increment offsetDays accordingly
+                            var daysInDateRange = (dateRange.To - dateRange.From).Days + 1;
+                            tracingService.Trace($"Condition met, days in date range to increment will be: {daysInDateRange}");
+                            offsetDays += daysInDateRange - 1; // Subtract 1 to account for the initial day
+                        }
+                    }
                 }
             }
         }

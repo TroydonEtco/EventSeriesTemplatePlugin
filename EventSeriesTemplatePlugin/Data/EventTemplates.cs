@@ -64,6 +64,7 @@ namespace EventSeriesTemplatePlugin.Data
             eventTemplateEntity[Constants.EvtTemplate_Name] = this.Name;
             eventTemplateEntity[Constants.EvtTemplate_ElementsAssociated] = new OptionSetValue(this.ElementsAssociated);
             eventTemplateEntity[Constants.EvtTemplate_EvtSeriesTemplateKey] = new EntityReference(eventSeriesTemplateEntity.LogicalName, eventSeriesTemplateEntity.Id);
+            //eventTemplateEntity[Constants.EvtTemplate_EvtSeriesTemplateId] = eventSeriesTemplateEntity.Id;
 
             Entity = eventTemplateEntity;
             return eventTemplateEntity;

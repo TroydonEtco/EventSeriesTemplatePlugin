@@ -118,8 +118,10 @@ namespace EventSeriesTemplatePlugin.Data
             this.ClassFrequency = eventSeriesTemplate.RecurrenceType;
             this.CourseType = eventSeriesTemplate.CourseType;
             this.FirstEventDate = eventSeriesTemplate.StartDate;
+            this.DatesToSkipSerialized = eventSeriesTemplate.DatesToSkipSerialized;
 
             this.Entity[Constants.EvtSeries_Description] = eventSeriesTemplate.Description;
+            this.Entity[Constants.EvtSeriesTemplate_DatesToSkip] = eventSeriesTemplate.DatesToSkipSerialized;
             this.Entity[Constants.EvtSeries_FirstEvtDate] = eventSeriesTemplate.StartDate;
             //this.Entity[Constants.EvtSeries_ClassFrequency] = eventSeriesTemplate.RecurrenceType;
             this.Entity[Constants.EvtSeries_ClassFrequency] = new OptionSetValue((int)eventSeriesTemplate.RecurrenceType);
@@ -129,6 +131,8 @@ namespace EventSeriesTemplatePlugin.Data
         public string Name { get; set; }
         public bool IsNewStage { get; set; }
         public string Description { get; set; }
+        public string DatesToSkipSerialized { get; set; }
+
         public bool CreateEvents { get; set; }
         public bool EvtsCreated { get; set; }
         public DateTime FirstEventDate { get; set; }

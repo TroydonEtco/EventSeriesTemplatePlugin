@@ -2,6 +2,7 @@
 using EventSeriesTemplatePlugin.Helpers;
 using Microsoft.Xrm.Sdk;
 using System;
+using System.IdentityModel.Metadata;
 using System.ServiceModel;
 
 namespace EventSeriesTemplatePlugin.Plugins.EventSeriesTemplatePlugins
@@ -33,7 +34,11 @@ namespace EventSeriesTemplatePlugin.Plugins.EventSeriesTemplatePlugins
                         tracingService.Trace($"Stage {++stageNumber}: About to create obj from preimage");
 
                         var evtSeriesTemplates = new EventSeriesTemplate(context, Enums.ImageTypes.PreImage);
-                        evtSeriesTemplates.UpdateEntityFromExecutionContext(evtSeriesTemplateEntity);
+                        if (evtSeriesTemplateEntity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_CreateEvtTemplates))
+                        {
+                            evtSeriesTemplates.CreateEvtTemplates = (bool)evtSeriesTemplateEntity[Constants.EvtSeriesTemplate_CreateEvtTemplates];
+                        }
+                        // evtSeriesTemplates.UpdateEntityFromExecutionContext(evtSeriesTemplateEntity);
 
                         tracingService.Trace($"Stage {++stageNumber}: Conditions to create templates {nameof(evtSeriesTemplates.CreateEvtTemplates)} : {evtSeriesTemplates.CreateEvtTemplates} " +
                             $"{nameof(evtSeriesTemplates.EventTemplatesCreated)} : {evtSeriesTemplates.EventTemplatesCreated}");

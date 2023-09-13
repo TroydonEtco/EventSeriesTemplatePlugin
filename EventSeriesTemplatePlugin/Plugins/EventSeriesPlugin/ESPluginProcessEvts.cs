@@ -56,12 +56,11 @@ namespace EventSeriesTemplatePlugin.Plugins.EventSeriesPlugin
 
         private void CreateEvents(IPluginExecutionContext context, ITracingService tracingService, IOrganizationService service, EventSeries evtSeries)
         {
-  
             try
             {
                 // Validate we are targeting the correct evt series template entity
                 tracingService.Trace($"Stage {++stageNumber}: Validating we are targeting the correct evt series template entity");
-                tracingService.Trace($"Stage {++stageNumber}: Conditions to create templates {nameof(evtSeries.CreateEvents)} : {evtSeries.CreateEvents}";
+                tracingService.Trace($"Stage {++stageNumber}: Conditions to create templates {nameof(evtSeries.CreateEvents)} : {evtSeries.CreateEvents}");
                 LogHelpers.TracePropertyData(tracingService, evtSeries);
 
                 if (evtSeries.CreateEvents && !evtSeries.EvtsCreated)
@@ -94,16 +93,16 @@ namespace EventSeriesTemplatePlugin.Plugins.EventSeriesPlugin
                     queryExpression.ColumnSet.AllColumns = true;
                     queryExpression.Criteria.AddFilter(filterExpression);
 
-                    EntityCollection vResult = service.RetrieveMultiple(queryExpression);
+                    EntityCollection retrievedEvtTemplateResults = service.RetrieveMultiple(queryExpression);
 
                     var evtTemplates = new List<EventTemplates>();
-                    foreach (Entity entity in vResult.Entities)
+                    foreach (Entity entity in retrievedEvtTemplateResults.Entities)
                     {
                         var evtTemplate = new EventTemplates(entity, evtSeries);
                     }
 
                     // Create events from relevant event templates retrieved
-                    var evts = CreateEventsFromTemplate(context, tracingService, evtTemplates, requestWithResults);
+                    var evts = CreateEventsFromTemplate(context, tracingService, evtTemplates, evtSeries, requestWithResults);
                     evtSeries.Events.AddRange(evts);
 
                     // Execute all the requests in the request collection using a single web method call.
@@ -126,16 +125,26 @@ namespace EventSeriesTemplatePlugin.Plugins.EventSeriesPlugin
             }
         }
 
-        private IEnumerable<Event> CreateEventsFromTemplate(IPluginExecutionContext context, ITracingService tracingService, IEnumerable<EventTemplates> eventTemplates, ExecuteMultipleRequest requestWithResults)
+        private IEnumerable<Event> CreateEventsFromTemplate(IPluginExecutionContext context, ITracingService tracingService, IEnumerable<EventTemplates> eventTemplates, EventSeries eventSeries, ExecuteMultipleRequest requestWithResults)
         {
             tracingService.Trace($"Stage {++stageNumber}: Intializing Create {nameof(CreateEventsFromTemplate)} method request.");
 
             var events = new List<Event>();
+            var firstLoop = true;
+            var evtDate = new DateTime();
 
-            foreach (var evt in events)
+            foreach (var evtTemplate in eventTemplates)
             {
-                // TODO: Get data from event template to inherit then update the evt.Entity with it
+                if (firstLoop)
+                {
+                    evtDate = evtTemplate.EventSeriesTemplate.StartDate.AddDays(evtTemplate.OffsetDays);
+                }
+                var evt = new Event(evtTemplate, eventSeries)
+                {
+                    EventDate = evtDate,
+                };
 
+                evt.CreateEntity(eventSeries.Entity);
                 CreateRequest createRequest = new CreateRequest { Target = evt.Entity };
                 requestWithResults.Requests.Add(createRequest);
             }

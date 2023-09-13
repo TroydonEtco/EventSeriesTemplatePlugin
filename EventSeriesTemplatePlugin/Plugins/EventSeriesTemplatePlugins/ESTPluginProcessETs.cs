@@ -1,19 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IdentityModel.Metadata;
 using System.Linq;
-using System.Runtime.Remoting.Services;
-using System.Security.Principal;
 using System.ServiceModel;
-using System.Text;
-using System.Threading.Tasks;
 using EventSeriesTemplatePlugin.Data;
 using EventSeriesTemplatePlugin.Helpers;
-using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Client;
 using Microsoft.Xrm.Sdk.Messages;
-using Microsoft.Xrm.Sdk.Metadata;
 using Microsoft.Xrm.Sdk.Query;
 using static EventSeriesTemplatePlugin.Enums;
 
@@ -49,6 +41,7 @@ namespace EventSeriesTemplatePlugin
                     if (EventTemplateSeriesBusinessRules.ShouldCreateTemplates(evtSeriesTemplates))
                     {
                         CreateEventTemplates(context, tracingService, service, evtSeriesTemplates);
+                        tracingService.Trace($"Stage {++stageNumber}: All steps completed in creating Event Templates, and updating Event Series Template");
                     }
                 }
             }
@@ -91,19 +84,24 @@ namespace EventSeriesTemplatePlugin
                     evtSeriesTemplates.EventTemplates.AddRange(evtTemplates);
                     // Execute all the requests in the request collection using a single web method call.
                     tracingService.Trace($"Stage {++stageNumber}: Executing all the requests in the request collection.");
+                    // DO not run the execute multiple requests because the update request will created related entities too
                     ExecuteMultipleResponse responseWithResults = (ExecuteMultipleResponse)service.Execute(requestWithResults);
                     tracingService.Trace($"Stage {++stageNumber}: Finished Executing all the requests in the request collection.");
 
                     // Handle responses
                     HandleResponses(requestWithResults, responseWithResults, tracingService);
 
-                    tracingService.Trace("Setting ET OK data in EST");
-                    evtSeriesTemplates.ETWithOkElements = responseWithResults.Responses.Count(r => r.Response != null);
-                    evtSeriesTemplates.AllETOk = !responseWithResults.Responses.Any(r => r.Fault != null);
-                    evtSeriesTemplates.EventTemplatesCreated = responseWithResults.Responses.Any(r => r.Response != null);
+                    // now retrieve the updated version of the event series template
+                    var evtSeriesTemplateUpdatedEntity = service.Retrieve(Constants.EvtSeriesTemplate_Table, evtSeriesTemplates.Entity.Id, new ColumnSet(true));
+                    var evtSeriesTemplatesUpdated = new EventSeriesTemplate(evtSeriesTemplateUpdatedEntity);
 
-                    evtSeriesTemplates.Update(evtSeriesTemplates.Entity); // update the referenced entity
-                    service.Update(evtSeriesTemplates.Entity); // then use org service to update in dataverse
+                    tracingService.Trace("Setting ET OK data in EST");
+                    evtSeriesTemplatesUpdated.ETWithOkElements = responseWithResults.Responses.Count(r => r.Response != null);
+                    evtSeriesTemplatesUpdated.AllETOk = !responseWithResults.Responses.Any(r => r.Fault != null);
+                    evtSeriesTemplatesUpdated.EventTemplatesCreated = responseWithResults.Responses.Any(r => r.Response != null);
+                    evtSeriesTemplatesUpdated.Update(); // update the referenced entity
+                    service.Update(evtSeriesTemplatesUpdated.Entity);
+                   //throw new NotImplementedException();
                 }
             }
             catch (FaultException<OrganizationServiceFault> ex)
@@ -131,7 +129,7 @@ namespace EventSeriesTemplatePlugin
                 var name = $"{evtSeriesTemplates.Name} {Enum.GetName(typeof(RecurrenceTypes), evtSeriesTemplates.RecurrenceType)} {loopCounter}";
 
                 // Call the CalculateOffsetDaysForEventSeries function and store the result in offset
-                OffsetHelper.CalculateOffsetDaysForEventSeries(evtSeriesTemplates, ref offsetDays, startDate, currentDate, endDate, evtSeriesTemplates.DatesToSkipSerialized, isFirstLoop);
+                OffsetHelper.CalculateOffsetDaysForEventSeries(evtSeriesTemplates, ref offsetDays, tracingService, currentDate, endDate, evtSeriesTemplates.DatesToSkipSerialized, isFirstLoop);
                 // Calculate the difference in offset days
                 int offsetDifference = offsetDays - oldOffsetDays;
 
@@ -147,9 +145,11 @@ namespace EventSeriesTemplatePlugin
                 // Update oldOffsetDays for the next iteration
                 oldOffsetDays = offsetDays;
 
-                evtTemplate.CreateEntity(evtSeriesTemplates.Entity);
-                CreateRequest createRequest = new CreateRequest { Target = evtTemplate.Entity };
+                var evtTemplateEnty = evtTemplate.CreateEntity(evtSeriesTemplates.Entity);
+                // TODO: Check if using this.Entity is creating a circular ref causing the creation of 10 evt templates instead of 1, in which case try returning the new entity only instead
+                CreateRequest createRequest = new CreateRequest { Target = evtTemplateEnty };
                 requestWithResults.Requests.Add(createRequest);
+
                 evtTemplates.Add(evtTemplate);
                 loopCounter++;
                 currentDate = currentDate.AddDays(offsetDifference);

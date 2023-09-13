@@ -25,6 +25,7 @@ namespace EventSeriesTemplatePlugin
 
         public const string EvtTemplate_Table = "new_eventtemplate";
         public const string EvtTemplate_EvtSeriesTemplateKey = "new_eventseriestemplate";
+        public const string EvtTemplate_EvtSeriesTemplateId = "cr49c_eventseriestemplateid";
         public const string EvtTemplate_SequenceNumber = "new_sequencenumber";
         public const string EvtTemplate_OffsetDays = "new_offsetdays";
         public const string EvtTemplate_OwnerId = "ownerid";
@@ -35,6 +36,7 @@ namespace EventSeriesTemplatePlugin
         public const string ESPreImage = "ESPreImage";
         public const string EvtSeries_Name = "new_name";
         public const string EvtSeries_Description = "new_descriptor";
+        public const string EvtSeries_DatesToSkip = "cr49c_datestoskip";
         public const string EvtSeries_ClassFrequency = "new_classfrequency";
         public const string EvtSeries_CourseType = "new_coursetype"; 
         public const string EvtSeries_PrimarySeriesTemplate = "new_primaryseriestemplate";

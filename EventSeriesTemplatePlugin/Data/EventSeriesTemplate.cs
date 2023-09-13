@@ -70,33 +70,84 @@ namespace EventSeriesTemplatePlugin.Data
             }
         }
 
-
-        public void CreateEntityFromPreImage(Entity entity)
+        public EventSeriesTemplate(Entity entity)
         {
-            // when create evt templates is true, and templates not created, we update
-            if (this.CreateEvtTemplates && !this.EventTemplatesCreated)
+            if (entity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_NumberOfEvts))
             {
-                this.UpdateEntityAfterCreateEvtTemplates();
+                NumberOfEvents = (int)entity[Constants.EvtSeriesTemplate_NumberOfEvts];
             }
+            if (entity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_EvtTemplatesCreated))
+            {
+                EventTemplatesCreated = (bool)entity[Constants.EvtSeriesTemplate_EvtTemplatesCreated];
+            }
+            if (entity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_CreateEvtTemplates))
+            {
+                CreateEvtTemplates = (bool)entity[Constants.EvtSeriesTemplate_CreateEvtTemplates];
+            }
+            if (entity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_Names))
+            {
+                Name = (string)entity[Constants.EvtSeriesTemplate_Names];
+            }
+            if (entity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_Description))
+            {
+                Description = (string)entity[Constants.EvtSeriesTemplate_Description];
+            }
+            if (entity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_DatesToSkip))
+            {
+                DatesToSkipSerialized = (string)entity[Constants.EvtSeriesTemplate_DatesToSkip];
+            }
+            if (entity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_StartDate))
+            {
+                StartDate = Convert.ToDateTime(entity[Constants.EvtSeriesTemplate_StartDate]);
+            }
+            if (entity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_NumberOfMonths))
+            {
+                NumberOfMonths = (int)entity[Constants.EvtSeriesTemplate_NumberOfMonths];
+            }
+            if (entity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_ETWithOkElements))
+            {
+                ETWithOkElements = (int)entity[Constants.EvtSeriesTemplate_ETWithOkElements];
+            }
+            if (entity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_AllETElementOk))
+            {
+                AllETOk = (bool)entity[Constants.EvtSeriesTemplate_AllETElementOk];
+            }
+            if (entity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_RecurrenceType))
+            {
+                RecurrenceType = (RecurrenceTypes)((OptionSetValue)entity[Constants.EvtSeriesTemplate_RecurrenceType]).Value;
+            }
+
+            if (entity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_CourseType))
+            {
+                CourseType = (CourseType)((OptionSetValue)entity[Constants.EvtSeriesTemplate_CourseType]).Value;
+            }
+
+
+            Entity = entity;
         }
 
-        public void Update(Entity entity)
+        public void Update()
         {
+           // Entity entity = null;
             // when create evt templates is true, and templates not created, we update
-            if (this.CreateEvtTemplates && !this.EventTemplatesCreated)
+            if (this.CreateEvtTemplates && this.EventTemplatesCreated)
             {
-                this.UpdateEntityAfterCreateEvtTemplates();
+                this.Entity = UpdateEntityAfterCreateEvtTemplates();
             }
+          //  return entity;
         }
 
         // TODO: Check if it will update entity passed in param, considering it is ref type
-        private void UpdateEntityAfterCreateEvtTemplates()
+        private Entity UpdateEntityAfterCreateEvtTemplates()
         {
-            this.Entity[Constants.EvtSeriesTemplate_NumberOfEvts] = this.NumberOfEvents;
-            this.Entity[Constants.EvtSeriesTemplate_EvtTemplatesCreated] = true;
-            this.Entity[Constants.EvtSeriesTemplate_CreateEvtTemplates] = this.CreateEvtTemplates;
-            this.Entity[Constants.EvtSeriesTemplate_ETWithOkElements] = this.ETWithOkElements;
-            this.Entity[Constants.EvtSeriesTemplate_AllETElementOk] = this.AllETOk;
+            var entity = new Entity(Constants.EvtSeriesTemplate_Table, this.Entity.Id);
+            entity[Constants.EvtSeriesTemplate_NumberOfEvts] = this.NumberOfEvents;
+            entity[Constants.EvtSeriesTemplate_EvtTemplatesCreated] = this.EventTemplatesCreated;
+            entity[Constants.EvtSeriesTemplate_CreateEvtTemplates] = this.CreateEvtTemplates;
+            entity[Constants.EvtSeriesTemplate_ETWithOkElements] = this.ETWithOkElements;
+            entity[Constants.EvtSeriesTemplate_AllETElementOk] = this.AllETOk;
+
+            return entity;
         }
 
         /// <summary>
@@ -131,7 +182,7 @@ namespace EventSeriesTemplatePlugin.Data
             }
             if (entity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_StartDate))
             {
-                this.StartDate = DateTime.Parse((string)entity[Constants.EvtSeriesTemplate_StartDate]);
+                this.StartDate = Convert.ToDateTime((string)entity[Constants.EvtSeriesTemplate_StartDate]);
             }
             if (entity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_NumberOfMonths))
             {
