@@ -33,7 +33,7 @@ namespace EventSeriesTemplatePlugin.Plugins.EventSeriesPlugin
                 if (context.InputParameters.Contains("Target") && context.InputParameters["Target"] is Entity)
                 {
                     Entity evtSeriesEntity = (Entity)context.InputParameters["Target"];
-                    if (evtSeriesEntity.LogicalName != Constants.EvtSeriesTemplate_Table)
+                    if (evtSeriesEntity.LogicalName != Constants.EvtSeries_Table)
                     {
                         tracingService.Trace($"Stage {++stageNumber}: Invalid target entity. Entity used: {evtSeriesEntity.LogicalName}, Entity expedcted: {Constants.EvtSeries_Table}");
                         return; // Targeting incorrect evt series template entity
@@ -44,7 +44,7 @@ namespace EventSeriesTemplatePlugin.Plugins.EventSeriesPlugin
                     var evtSeries = new EventSeries(context, ImageTypes.PreImage);
                     tracingService.Trace($"Stage {++stageNumber}: Updating Event Series From Execution Context");
                     evtSeries.UpdateEntityFromExecutionContext(evtSeriesEntity);
-
+                    CreateEvents(context, tracingService, service, evtSeries);
                 }
             }
             catch (Exception ex)
@@ -63,7 +63,7 @@ namespace EventSeriesTemplatePlugin.Plugins.EventSeriesPlugin
                 tracingService.Trace($"Stage {++stageNumber}: Conditions to create templates {nameof(evtSeries.CreateEvents)} : {evtSeries.CreateEvents}");
                 LogHelpers.TracePropertyData(tracingService, evtSeries);
 
-                if (evtSeries.CreateEvents && !evtSeries.EvtsCreated)
+                if (evtSeries.CreateEvents == YesOrNo.Yes && !evtSeries.EvtsCreated)
                 {
                     // Initialize execute multiple requests.
                     ExecuteMultipleRequest requestWithResults = new ExecuteMultipleRequest()
@@ -79,27 +79,11 @@ namespace EventSeriesTemplatePlugin.Plugins.EventSeriesPlugin
                     };
 
                     // retrieve event templates
-                    ConditionExpression conditionExpression = new ConditionExpression();
-                    conditionExpression.AttributeName = Constants.EvtTemplate_EvtSeriesTemplateKey;
-                    conditionExpression.Operator = ConditionOperator.Equal;
-                    conditionExpression.Values.Add(evtSeries.EventSeriesTemplate.Name);
+                    var evtSeriesTemplateEntity = service.Retrieve(Constants.EvtSeriesTemplate_Table, evtSeries.PrimarySeriesTemplate.Id, new ColumnSet(true));
+                    var eventSeriesTemplate = new EventSeriesTemplate(evtSeriesTemplateEntity);
+                    evtSeries.EventSeriesTemplate = eventSeriesTemplate;
 
-                    // FilterExpression - contains ConditionaExpression
-                    FilterExpression filterExpression = new FilterExpression();
-                    filterExpression.Conditions.Add(conditionExpression);
-
-                    // QueryExpression - ColumnSet, Table
-                    QueryExpression queryExpression = new QueryExpression();
-                    queryExpression.ColumnSet.AllColumns = true;
-                    queryExpression.Criteria.AddFilter(filterExpression);
-
-                    EntityCollection retrievedEvtTemplateResults = service.RetrieveMultiple(queryExpression);
-
-                    var evtTemplates = new List<EventTemplates>();
-                    foreach (Entity entity in retrievedEvtTemplateResults.Entities)
-                    {
-                        var evtTemplate = new EventTemplates(entity, evtSeries);
-                    }
+                    List<EventTemplates> evtTemplates = RetrieveEventTemplatesFromDataverse(service, evtSeries);
 
                     // Create events from relevant event templates retrieved
                     var evts = CreateEventsFromTemplate(context, tracingService, evtTemplates, evtSeries, requestWithResults);
@@ -113,10 +97,14 @@ namespace EventSeriesTemplatePlugin.Plugins.EventSeriesPlugin
                     // Handle responses
                     HandleResponses(requestWithResults, responseWithResults, tracingService);
 
+                    // now retrieve the updated version of the event series
+                    var evtSeriesUpdatedEntity = service.Retrieve(Constants.EvtSeries_Table, evtSeries.Entity.Id, new ColumnSet(true));
+                    var evtSeriesUpdated = new EventSeries(evtSeriesUpdatedEntity);
+
                     // make updates to event series
-                    evtSeries.EvtsCreated = responseWithResults.Responses.Any(r => r.Response != null);
-                    evtSeries.Update(); // update the referenced entity
-                    service.Update(evtSeries.Entity); // then use org service to update in dataverse
+                    evtSeriesUpdated.EvtsCreated = responseWithResults.Responses.Any(r => r.Response != null);
+                    evtSeriesUpdated.Update(); // update the referenced entity
+                    service.Update(evtSeriesUpdated.Entity); // then use org service to update in dataverse
                 }
             }
             catch (FaultException<OrganizationServiceFault> ex)
@@ -124,6 +112,8 @@ namespace EventSeriesTemplatePlugin.Plugins.EventSeriesPlugin
                 throw new InvalidPluginExecutionException(OperationStatus.Failed, 500, ex.Message);
             }
         }
+
+
 
         private IEnumerable<Event> CreateEventsFromTemplate(IPluginExecutionContext context, ITracingService tracingService, IEnumerable<EventTemplates> eventTemplates, EventSeries eventSeries, ExecuteMultipleRequest requestWithResults)
         {
@@ -142,14 +132,45 @@ namespace EventSeriesTemplatePlugin.Plugins.EventSeriesPlugin
                 var evt = new Event(evtTemplate, eventSeries)
                 {
                     EventDate = evtDate,
+                    Owner = new EntityReference("systemuser", context.UserId) // AttributeTypeCode.Owner //new AttributeTypeDisplayName() { Value = "OwnerType" }
                 };
 
-                evt.CreateEntity(eventSeries.Entity);
+                evt.CreateEntity(eventSeries.Entity, eventSeries.EventSeriesTemplate.Entity);
+                events.Add(evt);
                 CreateRequest createRequest = new CreateRequest { Target = evt.Entity };
                 requestWithResults.Requests.Add(createRequest);
             }
 
             return events;
+        }
+
+        private List<EventTemplates> RetrieveEventTemplatesFromDataverse(IOrganizationService service, EventSeries evtSeries)
+        {
+            ConditionExpression conditionExpression = new ConditionExpression();
+            conditionExpression.AttributeName = Constants.EvtTemplate_EvtSeriesTemplateKey;
+            conditionExpression.Operator = ConditionOperator.Equal;
+            conditionExpression.Values.Add(evtSeries.PrimarySeriesTemplate.Id);
+
+            // FilterExpression - contains ConditionaExpression
+            FilterExpression filterExpression = new FilterExpression();
+            filterExpression.Conditions.Add(conditionExpression);
+
+            // QueryExpression - ColumnSet, Table
+            QueryExpression queryExpression = new QueryExpression();
+            queryExpression.ColumnSet.AllColumns = true;
+            queryExpression.EntityName = Constants.EvtTemplate_Table;
+            queryExpression.Criteria.AddFilter(filterExpression);
+
+            EntityCollection retrievedEvtTemplateResults = service.RetrieveMultiple(queryExpression);
+
+            var evtTemplates = new List<EventTemplates>();
+            foreach (Entity entity in retrievedEvtTemplateResults.Entities)
+            {
+                var evtTemplate = new EventTemplates(entity, evtSeries);
+                evtTemplates.Add(evtTemplate);
+            }
+
+            return evtTemplates;
         }
 
         private void HandleResponses(ExecuteMultipleRequest requestWithResults, ExecuteMultipleResponse responseWithResults, ITracingService tracingService)
@@ -169,5 +190,7 @@ namespace EventSeriesTemplatePlugin.Plugins.EventSeriesPlugin
                 }
             }
         }
+
+
     }
 }

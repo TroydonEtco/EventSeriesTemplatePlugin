@@ -46,7 +46,7 @@ namespace EventSeriesTemplatePlugin.Data
             if (context.PreEntityImages.ContainsKey(Constants.ESPreImage) &&
                 context.PreEntityImages[Constants.ESPreImage].Contains(Constants.EvtSeries_CreateEvts))
             {
-                CreateEvents = (bool)context.PreEntityImages[Constants.ESPreImage][Constants.EvtSeries_CreateEvts];
+                CreateEvents = (YesOrNo)((OptionSetValue)context.PreEntityImages[Constants.ESPreImage][Constants.EvtSeries_CreateEvts]).Value;
             }
 
             if (context.PreEntityImages.ContainsKey(Constants.ESPreImage) &&
@@ -54,6 +54,48 @@ namespace EventSeriesTemplatePlugin.Data
             {
                 EvtsCreated = (bool)context.PreEntityImages[Constants.ESPreImage][Constants.EvtSeries_EvtsCreated];
             }
+
+            Events = new List<Event>();
+        }
+
+
+        public EventSeries(Entity entity)
+        {
+            if (entity.Attributes.ContainsKey(Constants.EvtSeries_Name))
+            {
+                Name = (string)entity[Constants.EvtSeries_Name];
+            }
+
+            if (entity.Attributes.ContainsKey(Constants.EvtSeries_Description))
+            {
+                Description = (string)entity[Constants.EvtSeries_Description];
+            }
+
+            if (entity.Attributes.ContainsKey(Constants.EvtSeries_CourseType))
+            {
+                CourseType = (CourseType)((OptionSetValue)entity[Constants.EvtSeries_CourseType]).Value;
+            }
+
+            if (entity.Attributes.ContainsKey(Constants.EvtSeries_ClassFrequency))
+            {
+                ClassFrequency = (RecurrenceTypes)((OptionSetValue)entity[Constants.EvtSeries_ClassFrequency]).Value;
+            }
+
+            if (entity.Attributes.ContainsKey(Constants.EvtSeries_PrimarySeriesTemplate))
+            {
+                PrimarySeriesTemplate = (EntityReference)entity[Constants.EvtSeries_PrimarySeriesTemplate];
+            }
+            if (entity.Attributes.ContainsKey(Constants.EvtSeries_CreateEvts))
+            {
+                CreateEvents = (YesOrNo)((OptionSetValue)entity[Constants.EvtSeries_CreateEvts]).Value;
+            }
+
+            if (entity.Attributes.ContainsKey(Constants.EvtSeries_EvtsCreated))
+            {
+                EvtsCreated = (bool)entity[Constants.EvtSeries_EvtsCreated];
+            }
+
+                Entity = entity;
         }
 
         public void UpdateEntityFromExecutionContext(Entity entity)
@@ -84,7 +126,7 @@ namespace EventSeriesTemplatePlugin.Data
             }
             if (entity.Attributes.ContainsKey(Constants.EvtSeries_CreateEvts))
             {
-                this.CreateEvents = (bool)entity[Constants.EvtSeries_CreateEvts];
+                this.CreateEvents = (YesOrNo)((OptionSetValue)entity[Constants.EvtSeries_CreateEvts]).Value;
             }
 
             if (entity.Attributes.ContainsKey(Constants.EvtSeries_EvtsCreated))
@@ -133,7 +175,7 @@ namespace EventSeriesTemplatePlugin.Data
         public string Description { get; set; }
         public string DatesToSkipSerialized { get; set; }
 
-        public bool CreateEvents { get; set; }
+        public YesOrNo CreateEvents { get; set; }
         public bool EvtsCreated { get; set; }
         public DateTime FirstEventDate { get; set; }
         public CourseType? CourseType { get; set; }

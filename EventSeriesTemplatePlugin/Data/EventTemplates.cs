@@ -49,7 +49,7 @@ namespace EventSeriesTemplatePlugin.Data
             }
             if (entity.Attributes.ContainsKey(Constants.EvtTemplate_ElementsAssociated))
             {
-                this.ElementsAssociated = (int)entity[Constants.EvtTemplate_ElementsAssociated];
+                this.ElementsAssociated = (int)(YesOrNo)((OptionSetValue)entity[Constants.EvtTemplate_ElementsAssociated]).Value;
             }
 
             this.Entity = entity;
