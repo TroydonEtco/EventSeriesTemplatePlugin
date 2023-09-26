@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Remoting.Contexts;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using static EventSeriesTemplatePlugin.Enums;
 
@@ -174,7 +175,21 @@ namespace EventSeriesTemplatePlugin.Data
             }
             if (entity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_Description))
             {
-                this.Description = (string)entity[Constants.EvtSeriesTemplate_Description];
+                var descriptionHTML = (string)entity[Constants.EvtSeriesTemplate_Description];
+
+
+                // Define a regular expression pattern to match the inner div content
+                string pattern = @"<div[^>]*>\s*(.*?)\s*</div>";
+
+                // Use Regex to find the matching div
+                Match match = Regex.Match(descriptionHTML, pattern);
+
+                if (match.Success)
+                {
+                    // Extract the inner text of the matched div and remove any HTML tags
+                    string content = Regex.Replace(match.Groups[1].Value.Trim(), "<.*?>", string.Empty);
+                    this.Description = content;
+                }
             }
             if (entity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_DatesToSkip))
             {
@@ -182,7 +197,7 @@ namespace EventSeriesTemplatePlugin.Data
             }
             if (entity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_StartDate))
             {
-                this.StartDate = Convert.ToDateTime((string)entity[Constants.EvtSeriesTemplate_StartDate]);
+                this.StartDate = Convert.ToDateTime(entity[Constants.EvtSeriesTemplate_StartDate]);
             }
             if (entity.Attributes.ContainsKey(Constants.EvtSeriesTemplate_NumberOfMonths))
             {

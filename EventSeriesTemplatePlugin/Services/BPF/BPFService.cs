@@ -21,7 +21,8 @@ namespace EventSeriesTemplatePlugin.Services.BPF
         public bool IsNewStageOnBPF(ITracingService tracingService, IOrganizationService service, Entity entity, string stageName)
         {
             var activetageName = GetActiveStageName(tracingService, service, entity);
-            return  stageName.Equals(activetageName, StringComparison.OrdinalIgnoreCase);
+
+            return activetageName != null ? stageName.Equals(activetageName, StringComparison.OrdinalIgnoreCase) : false;
         }
 
         private string GetActiveStageName(ITracingService tracingService, IOrganizationService service, Entity entity)
@@ -46,6 +47,7 @@ namespace EventSeriesTemplatePlugin.Services.BPF
             else
             {
                 tracingService.Trace("No process instances found for the record; aborting the sample.");
+                return null;
             }
 
             // Retrieve the active stage ID of the active process instance

@@ -135,7 +135,7 @@ namespace EventSeriesTemplatePlugin.Plugins.EventSeriesPlugin
                     Owner = new EntityReference("systemuser", context.UserId) // AttributeTypeCode.Owner //new AttributeTypeDisplayName() { Value = "OwnerType" }
                 };
 
-                evt.CreateEntity(eventSeries.Entity, eventSeries.EventSeriesTemplate.Entity);
+                evt.CreateEntity(eventSeries.Entity);
                 events.Add(evt);
                 CreateRequest createRequest = new CreateRequest { Target = evt.Entity };
                 requestWithResults.Requests.Add(createRequest);

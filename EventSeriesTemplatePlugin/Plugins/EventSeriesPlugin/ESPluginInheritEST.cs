@@ -33,18 +33,39 @@ namespace EventSeriesTemplatePlugin.Plugins.EventSeriesPlugin
                     }
 
                     tracingService.Trace($"Stage {++stageNumber}: Initialising Event Series object");
-                    var evtSeries = new EventSeries(context, ImageTypes.PreImage);
-                    tracingService.Trace($"Stage {++stageNumber}: Updating Event Series From Execution Context");
-                    evtSeries.UpdateEntityFromExecutionContext(evtSeriesEntity);
-                    // only inherit when primary series template is selected, and when we are on the New Stage part of the BPF
-                    if (evtSeries.PrimarySeriesTemplate != null)
+                    if (context.MessageName == "Create")
                     {
-                        tracingService.Trace($"Stage {++stageNumber}: Primary series template object available");
-                        InheritEventSeriesTemplate(context, tracingService, service, evtSeries);
-                    }
-                    else
+                        tracingService.Trace($"Stage {++stageNumber}: Context message name is: {context.MessageName}");
+                        var evtSeries = new EventSeries(evtSeriesEntity);
+                        tracingService.Trace($"Stage {++stageNumber}: Updating Event Series From Execution Context");
+                        evtSeries.UpdateEntityFromExecutionContext(evtSeriesEntity);
+                        // only inherit when primary series template is selected, and when we are on the New Stage part of the BPF
+                        if (evtSeries.PrimarySeriesTemplate != null)
+                        {
+                            tracingService.Trace($"Stage {++stageNumber}: Primary series template object available");
+                            InheritEventSeriesTemplate(context, tracingService, service, evtSeries);
+                        }
+                        else
+                        {
+                            tracingService.Trace("No Primary Series Template selected, inheritance will not be done");
+                        }
+                    } 
+                    else if (context.MessageName == "Update")
                     {
-                        tracingService.Trace("No Primary Series Template selected, inheritance will not be done");
+                        tracingService.Trace($"Stage {++stageNumber}: Context message name is: {context.MessageName}");
+                        tracingService.Trace($"Stage {++stageNumber}: Updating Event Series From Execution Context");
+                        var evtSeries = new EventSeries(context, ImageTypes.PreImage);
+                        evtSeries.UpdateEntityFromExecutionContext(evtSeriesEntity);
+                        // only inherit when primary series template is selected, and when we are on the New Stage part of the BPF
+                        if (evtSeries.PrimarySeriesTemplate != null)
+                        {
+                            tracingService.Trace($"Stage {++stageNumber}: Primary series template object available");
+                            InheritEventSeriesTemplate(context, tracingService, service, evtSeries);
+                        }
+                        else
+                        {
+                            tracingService.Trace("No Primary Series Template selected, inheritance will not be done");
+                        }
                     }
                 }
             }
@@ -62,11 +83,12 @@ namespace EventSeriesTemplatePlugin.Plugins.EventSeriesPlugin
             var isNewStage = bpfService.IsNewStageOnBPF(tracingService, service, evtSeries.Entity, Constants.EvtSeries_Stage_New);
             evtSeries.IsNewStage = isNewStage;
 
-            if (isNewStage)
+            if (isNewStage || context.MessageName == "Create")
             {
                 // Retrieve evt series template data
                 tracingService.Trace($"Stage {++stageNumber}: Attempting to retreive event series template data entity");
-                ColumnSet evtSeriesColumns = new ColumnSet(Constants.EvtSeries_CourseType, Constants.EvtSeriesTemplate_RecurrenceType, Constants.EvtSeriesTemplate_Description);
+                ColumnSet evtSeriesColumns = new ColumnSet(Constants.EvtSeries_CourseType, Constants.EvtSeriesTemplate_RecurrenceType, Constants.EvtSeriesTemplate_Description,
+                    Constants.EvtSeriesTemplate_DatesToSkip, Constants.EvtSeriesTemplate_StartDate);
                 Entity evtSeriesTemplateEntity = service.Retrieve(evtSeries.PrimarySeriesTemplate.LogicalName, evtSeries.PrimarySeriesTemplate.Id, evtSeriesColumns);
                 tracingService.Trace($"Stage {++stageNumber}: Attempting to update event series template data from execution context");
                 evtSeries.EventSeriesTemplate.UpdateEntityFromExecutionContext(evtSeriesTemplateEntity);

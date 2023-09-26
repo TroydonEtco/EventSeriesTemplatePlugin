@@ -16,10 +16,7 @@ namespace EventSeriesTemplatePlugin.Data
                 {
                     Name = (string)context.PreEntityImages[Constants.ESPreImage][Constants.EvtSeries_Name];
                 }
-            }
 
-            if (imageType == ImageTypes.PreImage)
-            {
                 if (context.PreEntityImages.ContainsKey(Constants.ESPreImage) &&
                     context.PreEntityImages[Constants.ESPreImage].Contains(Constants.EvtSeries_Description))
                 {
@@ -55,6 +52,12 @@ namespace EventSeriesTemplatePlugin.Data
                 EvtsCreated = (bool)context.PreEntityImages[Constants.ESPreImage][Constants.EvtSeries_EvtsCreated];
             }
 
+            if (context.PreEntityImages.ContainsKey(Constants.ESPreImage) &&
+                context.PreEntityImages[Constants.ESPreImage].Contains(Constants.EvtSeries_DatesToSkip))
+            {
+                DatesToSkipSerialized = (string)context.PreEntityImages[Constants.ESPreImage][Constants.EvtSeries_DatesToSkip];
+            }
+
             Events = new List<Event>();
         }
 
@@ -84,7 +87,9 @@ namespace EventSeriesTemplatePlugin.Data
             if (entity.Attributes.ContainsKey(Constants.EvtSeries_PrimarySeriesTemplate))
             {
                 PrimarySeriesTemplate = (EntityReference)entity[Constants.EvtSeries_PrimarySeriesTemplate];
+                EventSeriesTemplate = new EventSeriesTemplate();
             }
+
             if (entity.Attributes.ContainsKey(Constants.EvtSeries_CreateEvts))
             {
                 CreateEvents = (YesOrNo)((OptionSetValue)entity[Constants.EvtSeries_CreateEvts]).Value;
@@ -93,6 +98,11 @@ namespace EventSeriesTemplatePlugin.Data
             if (entity.Attributes.ContainsKey(Constants.EvtSeries_EvtsCreated))
             {
                 EvtsCreated = (bool)entity[Constants.EvtSeries_EvtsCreated];
+            }
+
+            if (entity.Attributes.ContainsKey(Constants.EvtSeries_DatesToSkip))
+            {
+                DatesToSkipSerialized = (string)entity[Constants.EvtSeries_DatesToSkip];
             }
 
                 Entity = entity;
@@ -112,12 +122,13 @@ namespace EventSeriesTemplatePlugin.Data
 
             if (entity.Attributes.ContainsKey(Constants.EvtSeries_CourseType))
             {
-                this.CourseType = (CourseType)(int)entity[Constants.EvtSeries_CourseType];
+                //this.CourseType = (CourseType)(int)entity[Constants.EvtSeries_CourseType];
+                this.CourseType = (CourseType)((OptionSetValue)entity[Constants.EvtSeries_CourseType]).Value;
             }
 
             if (entity.Attributes.ContainsKey(Constants.EvtSeries_ClassFrequency))
             {
-                this.ClassFrequency = (RecurrenceTypes)(int)entity[Constants.EvtSeries_ClassFrequency];
+                this.ClassFrequency = (RecurrenceTypes)((OptionSetValue)entity[Constants.EvtSeries_ClassFrequency]).Value;
             }
 
             if (entity.Attributes.ContainsKey(Constants.EvtSeries_PrimarySeriesTemplate))
@@ -132,6 +143,11 @@ namespace EventSeriesTemplatePlugin.Data
             if (entity.Attributes.ContainsKey(Constants.EvtSeries_EvtsCreated))
             {
                 this.EvtsCreated = (bool)entity[Constants.EvtSeries_EvtsCreated];
+            }
+
+            if (entity.Attributes.ContainsKey(Constants.EvtSeries_DatesToSkip))
+            {
+                this.DatesToSkipSerialized = (string)entity[Constants.EvtSeries_DatesToSkip];
             }
 
             this.Entity = entity;
@@ -163,7 +179,7 @@ namespace EventSeriesTemplatePlugin.Data
             this.DatesToSkipSerialized = eventSeriesTemplate.DatesToSkipSerialized;
 
             this.Entity[Constants.EvtSeries_Description] = eventSeriesTemplate.Description;
-            this.Entity[Constants.EvtSeriesTemplate_DatesToSkip] = eventSeriesTemplate.DatesToSkipSerialized;
+            this.Entity[Constants.EvtSeries_DatesToSkip] = eventSeriesTemplate.DatesToSkipSerialized;
             this.Entity[Constants.EvtSeries_FirstEvtDate] = eventSeriesTemplate.StartDate;
             //this.Entity[Constants.EvtSeries_ClassFrequency] = eventSeriesTemplate.RecurrenceType;
             this.Entity[Constants.EvtSeries_ClassFrequency] = new OptionSetValue((int)eventSeriesTemplate.RecurrenceType);

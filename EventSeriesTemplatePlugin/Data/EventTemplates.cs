@@ -39,9 +39,9 @@ namespace EventSeriesTemplatePlugin.Data
             {
                 this.OffsetDays = (int)entity[Constants.EvtTemplate_OffsetDays];
             }
-            if (entity.Attributes.ContainsKey(Constants.EvtTemplate_OwnerId))
+            if (entity.Attributes.ContainsKey(Constants.OwnerId))
             {
-                this.Owner = (EntityReference)entity[Constants.EvtTemplate_OwnerId];
+                this.Owner = (EntityReference)entity[Constants.OwnerId];
             }
             if (entity.Attributes.ContainsKey(Constants.EvtSeries_Name))
             {
@@ -60,7 +60,7 @@ namespace EventSeriesTemplatePlugin.Data
             var eventTemplateEntity = new Entity(Constants.EvtTemplate_Table);
             eventTemplateEntity[Constants.EvtTemplate_SequenceNumber] = this.SequenceNumber;
             eventTemplateEntity[Constants.EvtTemplate_OffsetDays] = this.OffsetDays;
-            eventTemplateEntity[Constants.EvtTemplate_OwnerId] = this.Owner;
+            eventTemplateEntity[Constants.OwnerId] = this.Owner;
             eventTemplateEntity[Constants.EvtTemplate_Name] = this.Name;
             eventTemplateEntity[Constants.EvtTemplate_ElementsAssociated] = new OptionSetValue(this.ElementsAssociated);
             eventTemplateEntity[Constants.EvtTemplate_EvtSeriesTemplateKey] = new EntityReference(eventSeriesTemplateEntity.LogicalName, eventSeriesTemplateEntity.Id);

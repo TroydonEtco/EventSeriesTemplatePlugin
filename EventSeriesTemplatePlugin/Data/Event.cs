@@ -19,13 +19,13 @@ namespace EventSeriesTemplatePlugin.Data
             this.SequenceNumber = evtTemplate.SequenceNumber;
         }
 
-        public Entity CreateEntity(Entity eventSeriesEntity, Entity eventSeriesTemplateEntity)
+        public Entity CreateEntity(Entity eventSeriesEntity)
         {
-            var eventEntity = new Entity(Constants.EvtTemplate_Table);
-            eventEntity[Constants.EvtTemplate_SequenceNumber] = this.SequenceNumber;
-            eventEntity[Constants.EvtTemplate_OwnerId] = this.Owner;
-            eventEntity[Constants.EvtTemplate_Name] = this.Name;
-            eventEntity[Constants.EvtTemplate_EvtSeriesTemplateKey] = new EntityReference(eventSeriesTemplateEntity.LogicalName, eventSeriesTemplateEntity.Id);
+            var eventEntity = new Entity(Constants.Evt_Table);
+            eventEntity[Constants.Evt_SequenceNumber] = this.SequenceNumber;
+            eventEntity[Constants.OwnerId] = this.Owner;
+            eventEntity[Constants.Evt_Name] = this.Name;
+            eventEntity[Constants.Evt_EvtSeriesKey] = new EntityReference(eventSeriesEntity.LogicalName, eventSeriesEntity.Id);
 
             Entity = eventEntity;
             return eventEntity;
