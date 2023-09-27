@@ -60,6 +60,7 @@ namespace EventSeriesTemplatePlugin.Plugins.EventSeriesPlugin
                             tracingService.Trace($"Stage {++stageNumber}: Context message name is: {context.MessageName}");
                             tracingService.Trace($"Stage {++stageNumber}: About to create obj from preimage");
                             var evtSeries = new EventSeries(context, ImageTypes.PreImage);
+                            evtSeries.EventSeriesTemplate = new EventSeriesTemplate();
                             evtSeries.UpdateEntityFromExecutionContext(evtSeriesEntity);
                             tracingService.Trace($"Stage {++stageNumber}: Created obj from preimage");
 

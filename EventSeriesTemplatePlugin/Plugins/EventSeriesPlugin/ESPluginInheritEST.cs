@@ -55,6 +55,7 @@ namespace EventSeriesTemplatePlugin.Plugins.EventSeriesPlugin
                         tracingService.Trace($"Stage {++stageNumber}: Context message name is: {context.MessageName}");
                         tracingService.Trace($"Stage {++stageNumber}: Updating Event Series From Execution Context");
                         var evtSeries = new EventSeries(context, ImageTypes.PreImage);
+                        evtSeries.EventSeriesTemplate = new EventSeriesTemplate();
                         evtSeries.UpdateEntityFromExecutionContext(evtSeriesEntity);
                         // only inherit when primary series template is selected, and when we are on the New Stage part of the BPF
                         if (evtSeries.PrimarySeriesTemplate != null)
